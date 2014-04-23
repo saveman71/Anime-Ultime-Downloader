@@ -20,8 +20,8 @@ class Episode(object):
         data = [('idfile', self.episode_id), ('type','orig')]
         data = urllib.parse.urlencode(data)
         data = data.encode('utf-8')
-        u = urllib.request.urlopen('http://www.anime-ultime.net/ddl/authorized_download.php',
-                                   data = data)
+        url = 'http://www.anime-ultime.net/ddl/authorized_download.php'
+        u = urllib.request.urlopen(url, data=data)
         return json.loads(u.read().decode('utf-8'))
 
     def is_auth(self):

@@ -29,7 +29,11 @@ class AnimeDl(object):
             self.ep.append(au.Episode(episode_id))
             self.ep[-1].get_metadata()
             episode_id = self.ep[-1].next_id
-            self.ep[-1].treeiter = store.append([self.ep[-1].episode_id, self.ep[-1].title, int(self.ep[-1].size), 0, ""])
+            self.ep[-1].treeiter = store.append([self.ep[-1].episode_id,
+                                                 self.ep[-1].title,
+                                                 int(self.ep[-1].size),
+                                                 0,
+                                                 ""])
             i += 1
         spinner.hide()
 
@@ -93,13 +97,6 @@ class GuiHandler(object):
             threading.Thread(target=self.Anime.set_list, args=(curr_id, 1,)).start()
         except ValueError:
             pass
-
-    def on_getfilename_button_clicked(self, widget):
-        store = interface.get_object('liststore1')
-        sel_model, sel_rows = interface.get_object('treeview1').get_selection().get_selected_rows()
-        selection = []
-        for sel in sel_rows:
-            threading.Thread(target=self.get_anime_url, args=(list(sel_model[sel])[0],)).start()
 
     def on_download_button_clicked(self, widget):
         store = interface.get_object('liststore1')
