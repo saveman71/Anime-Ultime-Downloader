@@ -17,7 +17,9 @@ class AnimeDl(object):
     def __init__(self):
         self.ep = []
         self.percent = 0
-        self.verbose = True
+        self.verbose = False
+        self.json = []
+        self.load_config('config')
 
     def set_list(self, episode_id, to_add=-1):
         store = interface.get_object('liststore1')
@@ -28,12 +30,8 @@ class AnimeDl(object):
         while episode_id != None and (i < to_add or to_add == -1):
             self.ep.append(au.Episode(episode_id))
             self.ep[-1].get_metadata()
+            GLib.timeout_add(0, self.update_treestore_from_ep)
             episode_id = self.ep[-1].next_id
-            self.ep[-1].treeiter = store.append([self.ep[-1].episode_id,
-                                                 self.ep[-1].title,
-                                                 int(self.ep[-1].size),
-                                                 0,
-                                                 ""])
             i += 1
         spinner.hide()
 
@@ -75,14 +73,55 @@ class AnimeDl(object):
             for ep in self.ep:
                 if ep.episode_id == dl[0]:
                     if self.verbose:
-                        print('Downloading',  ep.title)
+                        print('Downloading', ep.title)
                     self.dl_episode(ep)
                     break
 
+    def manage_delete(self, delete_list):
+        for delete in delete_list:
+            for i in range(0, len(self.ep)):
+                if self.ep[i].episode_id == delete[0]:
+                    if self.verbose:
+                        print('Deleting', self.ep[i].title)
+                    del self.ep[i]
+                    break
+        GLib.timeout_add(0, self.update_treestore_from_ep)
+
+    def update_treestore_from_ep(self):
+        store = interface.get_object('liststore1')
+        store.clear()
+        for i in range(0, len(self.ep)):
+            self.ep[i].treeiter = store.append([self.ep[i].episode_id,
+                                                self.ep[i].title,
+                                                int(self.ep[i].size),
+                                                0, self.ep[i].filename])
+        return False
+
+    def load_list(self):
+        store = interface.get_object('liststore1')
+        for item in self.json:
+            ep = au.Episode(item['id'])
+            ep.title = item['title']
+            ep.size = item['size']
+            ep.filename = item['filename']
+            self.ep.append(ep)
+
+    def save_config(self, filename):
+        store = interface.get_object('liststore1');
+        di = [dict(zip(("id", "title", "size", "progress", "filename"), col)) for col in [row for row in store]]
+        json.dump(di, open(filename, 'w'), indent=4, separators=(',', ': '))
+
+    def load_config(self, filename):
+        try:
+            self.json = json.load(open(filename))
+        except FileNotFoundError:
+            pass
+        self.load_list();
 
 class GuiHandler(object):
     def __init__(self, Anime):
         self.Anime = Anime
+        self.Anime.update_treestore_from_ep();
 
     def on_find_next_episodes_clicked(self, widget):
         try:
@@ -104,9 +143,20 @@ class GuiHandler(object):
         selection = []
         for row in sel_rows:
             selection.append(list(sel_model[row]))
-        threading.Thread(target=self.Anime.manage_dl, args=(selection,)).start()
+        if len(selection):
+            threading.Thread(target=self.Anime.manage_dl, args=(selection,)).start()
+
+    def on_delete_activate(self, widget):
+        store = interface.get_object('liststore1')
+        sel_model, sel_rows = interface.get_object('treeview1').get_selection().get_selected_rows()
+        selection = []
+        for row in sel_rows:
+            selection.append(list(sel_model[row]))
+        if len(selection):
+            threading.Thread(target=self.Anime.manage_delete, args=(selection,)).start()
 
     def on_mainWindow_destroy(self, widget):
+        self.Anime.save_config('config');
         Gtk.main_quit()
 
 if __name__ == "__main__":
