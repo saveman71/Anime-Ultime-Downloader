@@ -32,7 +32,6 @@ class AnimeDl(object):
             self.ep[-1].treeiter = store.append([self.ep[-1].episode_id, self.ep[-1].title, int(self.ep[-1].size), 0, ""])
             i += 1
         spinner.hide()
-        print ([[ep.episode_id, ep.treeiter] for ep in self.ep])
 
     def update_url(self, ep):
         store = interface.get_object('liststore1')
@@ -57,7 +56,7 @@ class AnimeDl(object):
 
     def dl_episode(self, ep):
         if self.verbose:
-            print('Getting link of', ep.title, end = '\r')
+            print('Getting link of', ep.title)
         ep.get_url()
         if self.verbose:
             print('Link is', ep.episode_url + '/')

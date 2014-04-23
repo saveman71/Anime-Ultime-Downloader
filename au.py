@@ -28,29 +28,22 @@ class Episode(object):
         return (self.get_auth()['auth'])
 
     def get_url(self):
-        condition = True
         time_slept = 0
-        to_sleep = 0
-        while True:
+        result = self.get_auth()
+        to_sleep = result['wait']
+        result['auth'] = False
+        while result['auth'] == False:
+            print ('Sleeping {} seconds ({}%)'.format((to_sleep - time_slept) if (to_sleep - time_slept) > 0 else 0, '%.0f' % ((time_slept / to_sleep) * 100)), end='\r')
             if time_slept > 60:
                 raise RuntimeError('Server won\'t give us the url, giving up')
-            result = self.get_auth()
-            if result['auth']:
-                break
-            if (to_sleep == 0):
-                to_sleep = result['wait'] + 2
-                for i in range(0, 10):
-                    result = self.get_auth()
-                    if result['auth']:
-                        break
-            if (time_slept >= result['wait']):
-                to_sleep = .1
-            if not result['auth']:
-                print ('Sleeping', to_sleep, 'seconds ({} slept)'.format(time_slept))
-                time.sleep(to_sleep)
-                time_slept += to_sleep
+            if time_slept < to_sleep:
+                time.sleep(1)
+                time_slept += 1
             else:
-                break
+                result = self.get_auth()
+                time.sleep(.5)
+                time_slept += .5
+        print ()
         self.episode_url = 'http://www.anime-ultime.net' + result['link']
         self.filename = result['link'].split('/')[-1]
         return self.episode_url
