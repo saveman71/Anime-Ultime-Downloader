@@ -43,7 +43,7 @@ class Episode(object):
                 result = self.get_auth()
                 time.sleep(.5)
                 time_slept += .5
-        print()
+        print('Sleeped {} seconds                '.format(time_slept))
         self.episode_url = 'http://www.anime-ultime.net' + result['link']
         self.filename = result['link'].split('/')[-1]
         return self.episode_url
