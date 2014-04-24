@@ -1,5 +1,12 @@
 # Temp files
 *~
+config
+
+#Video files
+*.mkv
+*.mp4
+*.avi
+*.str
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
