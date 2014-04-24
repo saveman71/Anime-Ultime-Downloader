@@ -38,21 +38,21 @@ class AnimeDl(object):
     def update_url(self, ep):
         store = interface.get_object('liststore1')
         store[ep.treeiter][4] = ep.episode_url
-        return (False)
+        return False
 
     def update_percent(self, ep):
         store = interface.get_object('liststore1')
         store[ep.treeiter][3] = self.percent
         if self.percent == 100:
             return (False)
-        return (True)
+        return True
 
     def update_treestore(self, ep, dl):
         GLib.timeout_add_seconds(1, self.update_percent, ep)
         GLib.timeout_add(0, self.update_url, ep)
         while dl.get_percent() < 100:
             self.percent = dl.get_percent()
-            print ('Progress: %.2f%%' % self.percent, end='\r')
+            print('Progress: %.2f%%' % self.percent, end='\r')
             time.sleep(1)
         self.percent = 100
 
