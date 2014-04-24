@@ -33,7 +33,7 @@ class Episode(object):
         to_sleep = result['wait']
         result['auth'] = False
         while result['auth'] == False:
-            print ('Sleeping {} seconds ({}%)'.format((to_sleep - time_slept) if (to_sleep - time_slept) > 0 else 0, '%.0f' % ((time_slept / to_sleep) * 100)), end='\r')
+            print ('Sleeping {} seconds ({}%)   '.format((to_sleep - time_slept) if (to_sleep - time_slept) > 0 else 0, '%.0f' % ((time_slept / to_sleep) * 100)), end='\r')
             if time_slept > 60:
                 raise RuntimeError('Server won\'t give us the url, giving up')
             if time_slept < to_sleep:
