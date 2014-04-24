@@ -1,4 +1,4 @@
-# Python downloader for anime-utlime.net
+# Python downloader for anime-ultime.net
 
 This is a python script that can be used to automatically download anime from the french website [anime-ultime.net](http://anime-ultime.net/)
 
@@ -8,6 +8,7 @@ This is a python script that can be used to automatically download anime from th
 + python3.3
 + Beautiful Soup 4 (provided in the repo)
 + Gtk+ for python3.3
++ Gtk >= 3.10
 + Please report any missing dependency :)
 
 #### Usage
