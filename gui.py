@@ -123,19 +123,27 @@ class GuiHandler(object):
         self.Anime = Anime
         self.Anime.update_treestore_from_ep();
 
-    def on_find_next_episodes_clicked(self, widget):
+    def get_id_from_text(self, text=''):
         try:
-            curr_id = int(interface.get_object('id_entry').get_text())
-            threading.Thread(target=self.Anime.set_list, args=(curr_id,)).start()
+            return int(text)
         except ValueError:
-            pass
+            url = urllib.parse.urlparse(text)
+            if url.scheme == 'http' and url.path[0:10] == '/info-0-1/':
+                try:
+                    return int(url.path[10:-1].split('-')[0])
+                except ValueError:
+                    return -1
+        return -1
+
+    def on_find_next_episodes_clicked(self, widget):
+        curr_id = self.get_id_from_text(interface.get_object('id_entry').get_text())
+        if (curr_id > 0):
+            threading.Thread(target=self.Anime.set_list, args=(curr_id,)).start()
 
     def on_find_episode_clicked(self, widget):
-        try:
-            curr_id = int(interface.get_object('id_entry').get_text())
+        curr_id = self.get_id_from_text(interface.get_object('id_entry').get_text())
+        if (curr_id > 0):
             threading.Thread(target=self.Anime.set_list, args=(curr_id, 1,)).start()
-        except ValueError:
-            pass
 
     def on_download_button_clicked(self, widget):
         store = interface.get_object('liststore1')
