@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.1 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
   <object class="GtkImage" id="image1">
@@ -18,6 +18,8 @@
       <!-- column-name progress -->
       <column type="gdouble"/>
       <!-- column-name filename -->
+      <column type="gchararray"/>
+      <!-- column-name status -->
       <column type="gchararray"/>
     </columns>
   </object>
@@ -164,13 +166,12 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="find_next_episodes">
-                    <property name="label" translatable="yes">Trouver les IDs suivants</property>
+                  <object class="GtkButton" id="find_episode">
+                    <property name="label" translatable="yes">Trouver celui-ci</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <signal name="clicked" handler="on_find_next_episodes_clicked" swapped="no"/>
-                    <accelerator key="Return" signal="clicked"/>
+                    <signal name="clicked" handler="on_find_episode_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -180,12 +181,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="find_episode">
-                    <property name="label" translatable="yes">Trouver celui-ci</property>
+                  <object class="GtkButton" id="find_next_episodes">
+                    <property name="label" translatable="yes">Trouver les IDs suivants</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <signal name="clicked" handler="on_find_episode_clicked" swapped="no"/>
+                    <signal name="clicked" handler="on_find_next_episodes_clicked" swapped="no"/>
+                    <accelerator key="Return" signal="clicked"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -288,6 +290,17 @@
                       <object class="GtkCellRendererProgress" id="dl_progress"/>
                       <attributes>
                         <attribute name="value">3</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                    <property name="title" translatable="yes">Status</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="status_text"/>
+                      <attributes>
+                        <attribute name="text">5</attribute>
                       </attributes>
                     </child>
                   </object>

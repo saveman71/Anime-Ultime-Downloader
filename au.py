@@ -7,14 +7,16 @@ import re
 from bs4 import BeautifulSoup
 
 class Episode(object):
-    def __init__(self, episode_id, url = "", filename = ""):
+    def __init__(self, episode_id, url = None, filename = None):
         self.episode_id = episode_id
         self.episode_url = url
         self.filename = filename
         self.next_id = None
         self.size = 0
-        self.title = ""
+        self.title = ''
         self.treeiter = 0
+        self.status = 'idle'
+        self.dl = None
 
     def get_auth(self):
         data = [('idfile', self.episode_id), ('type','orig')]
@@ -27,11 +29,21 @@ class Episode(object):
     def is_auth(self):
         return self.get_auth()['auth']
 
+    def download(self):
+        if self.episode_url is not None:
+            self.dl = Download(self.episode_url, self.filename)
+            self.status = 'downloading'
+            self.dl.dl_start()
+            self.status = 'idle'
+        else:
+            raise RuntimeError('Failed download, missing url')
+
     def get_url(self):
+        self.status = 'getting url'
         time_slept = 0
         result = self.get_auth()
         to_sleep = result['wait']
-        result['auth'] = False
+#        result['auth'] = False
         while result['auth'] == False:
             print('Sleeping {} seconds ({}%)   '.format((to_sleep - time_slept) if (to_sleep - time_slept) > 0 else 0, '%.0f' % ((time_slept / to_sleep) * 100)), end='\r')
             if time_slept > 60:
@@ -43,12 +55,14 @@ class Episode(object):
                 result = self.get_auth()
                 time.sleep(.5)
                 time_slept += .5
-        print('Sleeped {} seconds                '.format(time_slept))
+        print('Slept {} seconds                '.format(time_slept))
         self.episode_url = 'http://www.anime-ultime.net' + result['link']
         self.filename = result['link'].split('/')[-1]
+        self.status = 'idle'
         return self.episode_url
 
     def get_metadata(self):
+        self.status = "fetching metadata"
         url = 'http://www.anime-ultime.net/info-0-01/' + str(self.episode_id)
         u = urllib.request.urlopen(url)
         soup = BeautifulSoup(u.read().decode('ISO-8859-1'))
@@ -62,6 +76,7 @@ class Episode(object):
                 self.next_id = int(soup.find_all('a', text='OAV Suivant')[0]['href'].split('/')[1])
             except:
                 self.next_id = None
+        self.status = 'idle'
         return [self.episode_id, self.title]
 
 class Download(object):
@@ -102,7 +117,6 @@ class Download(object):
         if self.file_size == 0:
             return 0
         return self.file_size_dl * 100 / self.file_size
-
 
 if __name__ == "__main__":
     print ('You should try ./gui.py instead')

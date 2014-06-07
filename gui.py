@@ -47,11 +47,17 @@ class AnimeDl(object):
             return (False)
         return True
 
-    def update_treestore(self, ep, dl):
+    def update_ep_status(self):
+        store = interface.get_object('liststore1')
+        for ep in self.ep:
+            store[ep.treeiter][5] = ep.status
+        return True
+
+    def update_treestore(self, ep):
         GLib.timeout_add_seconds(1, self.update_percent, ep)
         GLib.timeout_add(0, self.update_url, ep)
-        while dl.get_percent() < 100:
-            self.percent = dl.get_percent()
+        while ep.dl.get_percent() < 100:
+            self.percent = ep.dl.get_percent()
             print('Progress: %.2f%%' % self.percent, end='\r')
             time.sleep(1)
         self.percent = 100
@@ -62,11 +68,10 @@ class AnimeDl(object):
         ep.get_url()
         if self.verbose:
             print('Link is', ep.episode_url + '/')
-        dl = au.Download(ep.episode_url)
         if self.verbose:
             print('Now downloading', ep.title)
-        threading.Thread(target=dl.dl_start).start()
-        self.update_treestore(ep, dl)
+        threading.Thread(target=ep.download).start()
+        self.update_treestore(ep)
 
     def manage_dl(self, dl_list):
         for dl in dl_list:
@@ -94,7 +99,8 @@ class AnimeDl(object):
             self.ep[i].treeiter = store.append([self.ep[i].episode_id,
                                                 self.ep[i].title,
                                                 int(self.ep[i].size),
-                                                0, self.ep[i].filename])
+                                                0, self.ep[i].filename,
+                                                self.ep[i].status])
         return False
 
     def load_list(self):
@@ -121,7 +127,8 @@ class AnimeDl(object):
 class GuiHandler(object):
     def __init__(self, Anime):
         self.Anime = Anime
-        self.Anime.update_treestore_from_ep();
+        self.Anime.update_treestore_from_ep()
+        GLib.timeout_add(500, self.Anime.update_ep_status)
 
     def get_id_from_text(self, text=''):
         try:
