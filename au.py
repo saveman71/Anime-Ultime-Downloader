@@ -5,6 +5,7 @@ import json
 import time
 import re
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 class Episode(object):
     def __init__(self, episode_id, url = None, filename = None):
@@ -43,9 +44,8 @@ class Episode(object):
         time_slept = 0
         result = self.get_auth()
         to_sleep = result['wait']
-#        result['auth'] = False
-        while result['auth'] == False:
-            print('Sleeping {} seconds ({}%)   '.format((to_sleep - time_slept) if (to_sleep - time_slept) > 0 else 0, '%.0f' % ((time_slept / to_sleep) * 100)), end='\r')
+        while not result['auth']:
+            print('Sleeping {} seconds ({}%)   '.format((to_sleep - time_slept) if (to_sleep - time_slept) > 0 else 0, '%.0f' % ((time_slept / to_sleep) * 100) if to_sleep else 100), end='\r')
             if time_slept > 60:
                 raise RuntimeError('Server won\'t give us the url, giving up')
             if time_slept < to_sleep:
@@ -88,6 +88,10 @@ class Download(object):
         self.file_size = 0
         self.file_size_dl = 0
 
+    def get_milliseconds(self):
+        dt = datetime.now()
+        return int(time.mktime(dt.timetuple()) * 1000 + dt.microsecond / 1000)
+
     def dl_start(self):
         u = urllib.request.urlopen(self.url)
         retry = 0
@@ -103,13 +107,19 @@ class Download(object):
         else:
             raise RuntimeError('Download of', self.url, 'failed after', attempt + 1, 'attempts')
         f = open(self.filename, 'wb')
-        block_sz = 1024 * 1024
+        rate = 2000 * 1024 # Limit download speed to 2000 kb/s
+        block_sz = 1024 * 512
         while True: # Here we start the download by reading the request
+            before = self.get_milliseconds()
             buffer = u.read(block_sz)
             if not buffer: # if the read fails (aka the file is downloaded), break
                 break
             self.file_size_dl += len(buffer) # We update the amount of downloaded data
             f.write(buffer)
+            after = self.get_milliseconds()
+            overdownload = len(buffer) - (((after - before) / 1000) * rate)
+            if overdownload > 0:
+                time.sleep(overdownload / rate)
         f.close()
         print('Finished: 100%    ')
 
