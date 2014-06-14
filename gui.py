@@ -20,6 +20,7 @@ class AnimeDl(object):
         self.verbose = False
         self.json = []
         self.load_config('config')
+        self.speedlimit = None
 
     def set_list(self, episode_id, to_add=-1):
         store = interface.get_object('liststore1')
@@ -70,13 +71,13 @@ class AnimeDl(object):
             print('Link is', ep.episode_url + '/')
         if self.verbose:
             print('Now downloading', ep.title)
-        threading.Thread(target=ep.download).start()
+        threading.Thread(target=ep.download, args=(self.speedlimit,)).start()
         self.update_treestore(ep)
 
     def manage_dl(self, dl_list):
         for dl in dl_list:
             for ep in self.ep:
-                if ep.episode_id == dl[0]:
+                if ep.episode_id == dl[0] and ep.status == 'idle':
                     if self.verbose:
                         print('Downloading', ep.title)
                     self.dl_episode(ep)
@@ -169,6 +170,16 @@ class GuiHandler(object):
             selection.append(list(sel_model[row]))
         if len(selection):
             threading.Thread(target=self.Anime.manage_delete, args=(selection,)).start()
+
+    def on_speed_button_value_changed(self, widget):
+        value = int(widget.get_value()) * 1000
+        if value == 0:
+            self.Anime.speedlimit = None
+        else:
+            self.Anime.speedlimit = value
+        for ep in self.Anime.ep:
+            if ep.dl:
+                ep.dl.speedlimit = self.Anime.speedlimit
 
     def on_mainWindow_destroy(self, widget):
         self.Anime.save_config('config');

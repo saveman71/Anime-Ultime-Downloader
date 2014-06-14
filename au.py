@@ -30,9 +30,9 @@ class Episode(object):
     def is_auth(self):
         return self.get_auth()['auth']
 
-    def download(self):
+    def download(self, speedlimit = None):
         if self.episode_url is not None:
-            self.dl = Download(self.episode_url, self.filename)
+            self.dl = Download(self.episode_url, self.filename, speedlimit = speedlimit)
             self.status = 'downloading'
             self.dl.dl_start()
             self.status = 'idle'
@@ -80,19 +80,20 @@ class Episode(object):
         return [self.episode_id, self.title]
 
 class Download(object):
-    def __init__(self, url, filename = None):
+    def __init__(self, url, filename = None, speedlimit = None):
         self.url = url
         self.filename = filename
         if self.filename == None:
             self.filename = self.url.split('/')[-1]
         self.file_size = 0
         self.file_size_dl = 0
+        self.speedlimit = speedlimit
 
     def get_milliseconds(self):
         dt = datetime.now()
         return int(time.mktime(dt.timetuple()) * 1000 + dt.microsecond / 1000)
 
-    def dl_start(self, speedlimit = None):
+    def dl_start(self):
         u = urllib.request.urlopen(self.url)
         retry = 0
         for attempt in range(0, 10): # Try to download 10 times
@@ -108,8 +109,8 @@ class Download(object):
             raise RuntimeError('Download of', self.url, 'failed after', attempt + 1, 'attempts')
         f = open(self.filename, 'wb')
         block_sz = 1024 * 512
-        overdownload = 0
         while True: # Here we start the download by reading the request
+            speedlimit = self.speedlimit
             before = self.get_milliseconds()
             buffer = u.read(block_sz)
             if not buffer: # if the read fails (aka the file is downloaded), break
@@ -119,8 +120,10 @@ class Download(object):
             after = self.get_milliseconds()
             if speedlimit:
                 overdownload = len(buffer) - (((after - before) / 1000) * speedlimit)
+            else:
+                overdownload = 0
             if overdownload > 0:
-                time.sleep(overdownload / rate)
+                time.sleep(overdownload / speedlimit)
         f.close()
         print('Finished: 100%    ')
 
