@@ -92,7 +92,7 @@ class Download(object):
         dt = datetime.now()
         return int(time.mktime(dt.timetuple()) * 1000 + dt.microsecond / 1000)
 
-    def dl_start(self):
+    def dl_start(self, speedlimit = None):
         u = urllib.request.urlopen(self.url)
         retry = 0
         for attempt in range(0, 10): # Try to download 10 times
@@ -107,8 +107,8 @@ class Download(object):
         else:
             raise RuntimeError('Download of', self.url, 'failed after', attempt + 1, 'attempts')
         f = open(self.filename, 'wb')
-        rate = 2000 * 1024 # Limit download speed to 2000 kb/s
         block_sz = 1024 * 512
+        overdownload = 0
         while True: # Here we start the download by reading the request
             before = self.get_milliseconds()
             buffer = u.read(block_sz)
@@ -117,7 +117,8 @@ class Download(object):
             self.file_size_dl += len(buffer) # We update the amount of downloaded data
             f.write(buffer)
             after = self.get_milliseconds()
-            overdownload = len(buffer) - (((after - before) / 1000) * rate)
+            if speedlimit:
+                overdownload = len(buffer) - (((after - before) / 1000) * speedlimit)
             if overdownload > 0:
                 time.sleep(overdownload / rate)
         f.close()
