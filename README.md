@@ -2,6 +2,12 @@
 
 This is a python script that can be used to automatically download anime from the french website [anime-ultime.net](http://anime-ultime.net/)
 
+## Screenshots
+
+![](https://user-images.githubusercontent.com/1615426/79220080-a7c03b80-7e53-11ea-8d7e-869bf7bc16f7.png)
+
+![](https://user-images.githubusercontent.com/1615426/79220078-a727a500-7e53-11ea-9b20-693ab23041fb.png)
+
 ## Installation
 
 #### Requirements
